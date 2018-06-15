@@ -1,14 +1,15 @@
 {
-  "name": "botkit-starter-slack",
-  "version": "0.0.2",
-  "description": "A starter kit for building a custom Slack bot with Botkit Studio",
+  "name": "surveybot",
+  "version": "0.0.1",
+  "description": "",
   "main": "bot.js",
   "scripts": {
-    "start": "node bot.js"
+    "start": "npx babel-node bot.js"
   },
   "dependencies": {
     "babel-cli": "^6.26.0",
     "babel-core": "^6.26.3",
+    "babel-preset-env": "^1.7.0",
     "babel-preset-react-app": "^3.1.1",
     "body-parser": "^1.15.2",
     "botkit": "^0.6.12",
@@ -26,7 +27,7 @@
   "devDependencies": {},
   "babel": {
     "presets": [
-      "es2015"
+      "env", "react-app"
     ]
   }
 }
