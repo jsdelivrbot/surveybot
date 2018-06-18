@@ -1,14 +1,14 @@
 import env from 'node-env-file';
 import Botkit from 'botkit';
 
-env(__dirname + '/.env');
+env(__dirname + '../.env');
 
 const bot_options = {
   clientId: process.env.clientId,
   clientSecret: process.env.clientSecret,
   // debug: true,
   scopes: ['bot'],
-  json_file_store: __dirname + '/.data/db/',
+  json_file_store: __dirname + '../.data/db/',
 };
 
 const controller = Botkit.slackbot(bot_options);
