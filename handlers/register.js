@@ -19,6 +19,7 @@ class SurveyHandler {
     this.id = uuidv4();
 
     controller.on('interactive_message_callback', this.handlePrompt);
+    console.log(`callback:${this.id}`);
     events.once(`callback:${this.id}`, this.handleRedirect);
   }
 
