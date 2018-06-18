@@ -19,7 +19,7 @@ class SurveyHandler {
     this.id = uuidv4();
 
     controller.on('interactive_message_callback', this.handlePrompt);
-    events.once(`callback:${req.id}`, this.handleRedirect);
+    events.once(`callback:${this.id}`, this.handleRedirect);
   }
 
   promptUser = (bot, message) => bot.say({
@@ -39,7 +39,7 @@ class SurveyHandler {
             value: 'openSurvey',
             text: 'Open Survey',
             url: buildUrl(`http://${process.env.PROJECT_DOMAIN}.glitch.me`, {
-              path: `/callback/${message.user}/${this.id}`,
+              path: `/callback/${this.id}`,
               queryParams: {
                 url: surveyURL,
               },
