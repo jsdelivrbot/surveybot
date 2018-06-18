@@ -1,4 +1,5 @@
 import _ from 'lodash';
+import buildUrl from 'build-url';
 import fs from 'fs';
 import yaml from 'js-yaml';
 import glob from 'glob';
@@ -18,7 +19,7 @@ class SurveyHandler {
     this.id = uuidv4();
 
     controller.on('interactive_message_callback', this.handlePrompt);
-    events.once('asdf', this.handleRedirect);
+    events.once(`callback:${req.id}`, this.handleRedirect);
   }
 
   promptUser = (bot, message) => bot.say({
@@ -37,14 +38,19 @@ class SurveyHandler {
             type: 'button',
             value: 'openSurvey',
             text: 'Open Survey',
-            url: `http://${process.env.PROJECT_DOMAIN}.glitch.me/callback/${this.id}`,
+            url: buildUrl(`http://${process.env.PROJECT_DOMAIN}.glitch.me`, {
+              path: `/callback/${message.user}/${this.id}`,
+              queryParams: {
+                url: surveyURL,
+              },
+            }),
           },
           {
             name: 'cancel',
             type: 'button',
             value: 'cancel',
             text: 'Cancel',
-          }
+          },
         ],
       },
     ],

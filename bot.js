@@ -18,11 +18,10 @@ webserver.get('/', (req, res) => res.render('index', {
 }));
 
 webserver.get('/callback/:id', (req, res) => {
-  console.log('handle callback');
-  events.emit('asdf');
+  console.log(req.id);
+  events.emit(`callback:${req.id}`);
 
-  res.redirect(
-    'https://docs.google.com/forms/d/e/1FAIpQLSfm0Pm8WHH3Gxb3ctOuXI3JIYNKsT-WKp6VerG8YG0irprxvg/viewform');
+  res.redirect(req.query.url);
 });
 
 keepalive();
