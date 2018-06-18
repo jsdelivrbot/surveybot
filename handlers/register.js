@@ -7,6 +7,7 @@ import Promise from 'bluebird';
 import uuidv4 from 'uuid/v4';
 
 import controller from '../components/controller';
+import events from '../components/events';
 
 const surveyText = `We\'re trying to understand our Linkerd community better.
 Would you mind answering a few quick questions?`;
@@ -16,8 +17,8 @@ class SurveyHandler {
   constructor() {
     this.id = uuidv4();
 
-    controller.on('interactive_message_callback', this.handleShowDialog);
-    controller.on('dialog_submission', this.handleSubmission);
+    controller.on('interactive_message_callback', this.handlePrompt);
+    events.once(JSON.stringify({name: 'callback', id: id}), this.handleRedirect);
   }
 
   promptUser = (bot, message) => bot.say({
@@ -36,7 +37,7 @@ class SurveyHandler {
             type: 'button',
             value: 'openSurvey',
             text: 'Open Survey',
-            url: surveyURL,
+            url: `http://${process.env.PROJECT_DOMAIN}.glitch.me/callback/${this.id}`,
           },
           {
             name: 'cancel',
@@ -49,11 +50,15 @@ class SurveyHandler {
     ],
   });
 
-  handleShowDialog = (bot, message) => {
+  handlePrompt = (bot, message) => {
     if (message.callback_id !== this.id) return;
 
     console.log(message);
   };
+
+  handleRedirect = () => {
+    console.log('redirect');
+  }
 }
 
 export default async () => {

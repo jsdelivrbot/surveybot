@@ -18,8 +18,11 @@ webserver.get('/', (req, res) => res.render('index', {
 }));
 
 webserver.get('/callback/:id', (req, res) => {
-  events.emit(`callback:${id}`)
-})
+  events.emit(JSON.stringify({name: 'callback', id: req.id}));
+
+  res.redirect(
+    'https://docs.google.com/forms/d/e/1FAIpQLSfm0Pm8WHH3Gxb3ctOuXI3JIYNKsT-WKp6VerG8YG0irprxvg/viewform');
+});
 
 keepalive();
 registration();
