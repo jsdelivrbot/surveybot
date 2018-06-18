@@ -6,55 +6,62 @@ import util from 'util';
 import Promise from 'bluebird';
 import uuidv4 from 'uuid/v4';
 
-// const getConfigs = async () => {
-//   return await Promise.map(
-//     await util.promisify(glob)(`${__dirname}/*.yaml`),
-//     async fname => yaml.safeLoadAll(
-//       await util.promisify(fs.readFile)(fname), 'utf8'));
-// }
-//
+import controller from '../components/controller';
 
 const surveyText = `We\'re trying to understand our Linkerd community better.
-Would you mind answering a few quick questions?
+Would you mind answering a few quick questions?`;
+const surveyURL = 'https://docs.google.com/forms/d/e/1FAIpQLSfm0Pm8WHH3Gxb3ctOuXI3JIYNKsT-WKp6VerG8YG0irprxvg/viewform';
 
-<https://docs.google.com/forms/d/e/1FAIpQLSfm0Pm8WHH3Gxb3ctOuXI3JIYNKsT-WKp6VerG8YG0irprxvg/viewform|Survey>
-`;
+class SurveyHandler {
+  constructor(webserver, controller) {
+    this.controller = controller;
+    this.id = uuidv4();
 
-export default async controller => {
-  controller.hears(['survey'], 'direct_message', (bot, message) => {
-    const _id = uuidv4();
+    webserver.get
 
-    bot.say({
-      channel: message.user,
-      attachments: [
+    controller.on('interactive_message_callback', this.handleShowDialog);
+    controller.on('dialog_submission', this.handleSubmission);
+  }
+
+  promptUser = (bot, message) => bot.say({
+    channel: message.user,
+    attachments: [
+      {
         title: 'Hi from your friends at Buoyant!',
         fallback: 'Hi from your friends at Buoyant!',
-        color: 'green',
+        color: 'good',
         attachment_type: 'default',
-        callback_id: _id,
+        callback_id: this.id,
         text: surveyText,
-        unfurl_links: true
-      ]
-    })
+        actions: [
+          {
+            name: 'openSurvey',
+            type: 'button',
+            value: 'openSurvey',
+            text: 'Open Survey',
+            url: surveyURL,
+          },
+          {
+            name: 'cancel',
+            type: 'button',
+            value: 'cancel',
+            text: 'Cancel',
+          }
+        ],
+      },
+    ],
   });
 
+  handleShowDialog = (bot, message) => {
+    if (message.callback_id !== this.id) return;
 
+    console.log(message);
+  };
+}
 
-
-
-
-
-
-
-
-  // _(await getConfigs()).flatMap().each(config => {
-
-  //   const handler = (bot, message) => {
-  //     bot.say({
-  //       channel: message.user,
-  //       attachments: attachements
-  //     })
-  //   }
-  //   controller.
-  // });
+export default async () => {
+  controller.hears(
+    ['survey'],
+    'direct_message',
+    (bot, message) => new SurveyHandler(webserver, controller).promptUser(bot, message));
 }
