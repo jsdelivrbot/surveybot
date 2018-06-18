@@ -18,7 +18,7 @@ class SurveyHandler {
     this.id = uuidv4();
 
     controller.on('interactive_message_callback', this.handlePrompt);
-    events.once(JSON.stringify({name: 'callback', id: id}), this.handleRedirect);
+    events.once('asdf', this.handleRedirect);
   }
 
   promptUser = (bot, message) => bot.say({
