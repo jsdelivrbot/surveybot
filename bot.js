@@ -22,5 +22,5 @@ webserver.get('/callback/:id', (req, res) => {
 })
 
 keepalive();
-registration(controller);
+registration();
 registerHandlers();

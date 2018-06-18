@@ -13,11 +13,8 @@ Would you mind answering a few quick questions?`;
 const surveyURL = 'https://docs.google.com/forms/d/e/1FAIpQLSfm0Pm8WHH3Gxb3ctOuXI3JIYNKsT-WKp6VerG8YG0irprxvg/viewform';
 
 class SurveyHandler {
-  constructor(webserver, controller) {
-    this.controller = controller;
+  constructor() {
     this.id = uuidv4();
-
-    webserver.get
 
     controller.on('interactive_message_callback', this.handleShowDialog);
     controller.on('dialog_submission', this.handleSubmission);
@@ -63,5 +60,5 @@ export default async () => {
   controller.hears(
     ['survey'],
     'direct_message',
-    (bot, message) => new SurveyHandler(webserver, controller).promptUser(bot, message));
+    (bot, message) => new SurveyHandler().promptUser(bot, message));
 }

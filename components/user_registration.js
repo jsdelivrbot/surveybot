@@ -2,6 +2,8 @@ import _ from 'lodash';
 import debug from 'debug';
 import util from 'util';
 
+import controller from './controller';
+
 const log = debug('user_registration');
 
 const saveTeam = payload => {
@@ -16,6 +18,4 @@ const saveTeam = payload => {
     .catch(err => log('something went wrong', err, payload));
 }
 
-export default controller => {
-  controller.on('oauth:success', saveTeam);
-}
+export default () => controller.on('oauth:success', saveTeam);
