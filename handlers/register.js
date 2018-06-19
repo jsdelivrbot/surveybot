@@ -1,5 +1,7 @@
 import _ from 'lodash';
+import { DateTime } from 'luxon';
 import buildUrl from 'build-url';
+import util from 'util';
 import uuidv4 from 'uuid/v4';
 
 import controller from '../components/controller';
@@ -23,7 +25,7 @@ class CommunitySurvey extends UserMessage {
   static register = () => controller.hears(
     ['survey'],
     'direct_message',
-    (bot, message) => new CommunitySurvey(message.user).prompt(bot, message));
+    (bot, message) => new CommunitySurvey(message.user).prompt(bot));
 
   constructor(user) {
     super(user);
@@ -31,22 +33,28 @@ class CommunitySurvey extends UserMessage {
     controller.on('interactive_message_callback', this.handlePrompt);
     events.once(`callback:${this.id}`, this.handleRedirect);
 
-    controller.storage.users.save({id: this.user, ...this.getID()});
+    this.updateUser();
   }
 
+  maxPings = 3;
+  interval = {seconds: 1};
   surveyText = `We're trying to understand our Linkerd community better.
 Would you mind answering a few quick questions?`;
   surveyURL = 'https://docs.google.com/forms/d/e/1FAIpQLSfm0Pm8WHH3Gxb3ctOuXI3JIYNKsT-WKp6VerG8YG0irprxvg/viewform';
 
-  getID = (completed = false, optOut = false) => ({
-    [this.name]: {
-      update: new Date(),
-      completed: completed,
-      optOut: optOut,
-    },
-  });
+  updateUser = (completed = false, optOut = false, count = 0) => util.promisify(
+    controller.storage.users.save)({
+      id: this.user,
+      [CommunitySurvey.name]: {
+        update: new Date(),
+        completed: completed,
+        optOut: optOut,
+        count: count,
+      },
+    });
 
-  prompt = (bot, message) => {
+  prompt = bot => {
+    console.log(bot);
     log.info({
       fn: 'promptUser',
       user: this.user,
@@ -54,7 +62,7 @@ Would you mind answering a few quick questions?`;
     });
 
     bot.say({
-      channel: message.user,
+      channel: this.user,
       attachments: [
         {
           title: 'Hi from your friends at Buoyant!',
@@ -88,6 +96,21 @@ Would you mind answering a few quick questions?`;
     });
   }
 
+  nag = ({completed, update, optOut, count}) => {
+    log.info({
+      fn: 'nag',
+      user: this.user
+    });
+
+    if (completed || optOut || count >= this.maxPings) return;
+
+    if (DateTime.fromISO(update).plus(this.interval) < DateTime.utc()) return;
+
+    this.updateUser(completed, optOut, count+1);
+
+    this.prompt()
+  }
+
   handlePrompt = (bot, message) => {
     if (message.callback_id !== this.id) return;
 
@@ -96,6 +119,8 @@ Would you mind answering a few quick questions?`;
       user: this.user,
       callback: this.id,
     });
+
+    this.updateUser(false, true);
   };
 
   handleRedirect = () => {
@@ -105,7 +130,7 @@ Would you mind answering a few quick questions?`;
       callback: this.id,
     });
 
-    controller.storage.users.save({id: this.user, ...this.getID(true)});
+    this.updateUser(true);
   }
 }
 

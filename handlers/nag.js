@@ -1,22 +1,25 @@
 import _ from 'lodash';
 import schedule from 'node-schedule';
 import util from 'util';
-import { DateTime } from 'luxon';
 
 import controller from '../components/controller';
+import {messages} from './register';
+
+// XXX: This is going to slow down over time with every user being saved
+//      requiring calls all over the place. It should be fixed.
+const nagUser = user => _.each(user, (v, k) => {
+  const msg = _.find(messages, msg => msg.name === k);
+  if (!msg) return;
+
+  msg(user.id).nag(v);
+});
 
 const getUsers = () => {
-  // util.promisify(controller.storage.users.all)()
-  //   .then(users => {
-  //     console.log(users);
-
-  //     _(users).filter(user =>
-
-  //     return true
-  //   })
-  //   .catch(err => {
-  //     console.log(err);
-  //   });
+  util.promisify(controller.storage.users.all)()
+    .then(users => _.each(users, nagUser))
+    .catch(err => {
+      console.log(err);
+    });
 }
 
 export default async () => {
