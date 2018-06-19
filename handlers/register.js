@@ -6,13 +6,7 @@ import controller from '../components/controller';
 import events from '../components/events';
 import log from '../components/log';
 
-export const messages = [
-  CommunitySurvey,
-];
-
 class UserMessage {
-  static name = 'UserMessage';
-
   // static register = () => {};
 
   constructor(user) {
@@ -26,8 +20,6 @@ class UserMessage {
 }
 
 class CommunitySurvey extends UserMessage {
-  static name = 'CommunitySurvey';
-
   static register = () => controller.hears(
     ['survey'],
     'direct_message',
@@ -116,5 +108,9 @@ Would you mind answering a few quick questions?`;
     controller.storage.users.save({id: this.user, ...this.getID(true)});
   }
 }
+
+export const messages = [
+  CommunitySurvey,
+];
 
 export default async () => _.each(messages, msg => msg.register());
