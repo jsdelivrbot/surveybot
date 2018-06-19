@@ -14,17 +14,14 @@ const nagUser = user => _.each(user, (v, k) => {
   new msg(user.team, user.id).nag(v);
 });
 
-const getUsers = () => {
-  util.promisify(controller.storage.users.all)()
-    .then(users => _.each(users, nagUser))
-    .catch(err => {
-      console.log(err);
-    });
+const getUsers = async () => {
+  const users = await util.promisify(controller.storage.users.all)()
+  _.each(users, nagUser);
 }
 
 export default async () => {
   // XXX - Change to a more reasonable time.
-  // schedule.scheduleJob('* * * * * *', () => {
+  schedule.scheduleJob('* * * * * *', () => {
     getUsers();
-  // });
+  });
 }
