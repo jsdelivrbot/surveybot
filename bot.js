@@ -18,7 +18,6 @@ webserver.get('/', (req, res) => res.render('index', {
 }));
 
 webserver.get('/callback/:id', (req, res) => {
-  console.log(`callback:${req.params.id}`);
   events.emit(`callback:${req.params.id}`);
   res.redirect(req.query.url);
 });
