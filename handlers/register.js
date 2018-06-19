@@ -9,54 +9,60 @@ import events from '../components/events';
 import log from '../components/log';
 
 class UserMessage {
-  // static register = () => {};
-
   constructor(team, user) {
     this.team = team;
     this.user = user;
     this.id = uuidv4();
   }
-
-  // prompt = (bot, message) => {};
-
-  // nag = () => false;
 }
 
 class CommunitySurvey extends UserMessage {
   static register = () => controller.hears(
     ['survey'],
     'direct_message',
-    (bot, message) => new CommunitySurvey(
-      message.team_id, message.user).prompt(bot));
+    async (bot, message) => {
+      const msg = new CommunitySurvey(message.team_id, message.user);
+
+      await msg.updateUser();
+      msg.prompt(bot);
+    });
 
   constructor(team, user) {
     super(team, user);
 
     controller.on('interactive_message_callback', this.handlePrompt);
     events.once(`callback:${this.id}`, this.handleRedirect);
-
-    this.updateUser();
   }
 
   maxPings = 3;
-  interval = {seconds: 1};
+  interval = {seconds: 5};
   surveyText = `We're trying to understand our Linkerd community better.
 Would you mind answering a few quick questions?`;
   surveyURL = 'https://docs.google.com/forms/d/e/1FAIpQLSfm0Pm8WHH3Gxb3ctOuXI3JIYNKsT-WKp6VerG8YG0irprxvg/viewform';
 
-  updateUser = (completed = false, optOut = false, count = 0) => util.promisify(
-    controller.storage.users.save)({
-      id: this.user,
-      team: this.team,
-      [CommunitySurvey.name]: {
-        update: new Date(),
-        completed: completed,
-        optOut: optOut,
-        count: count,
-      },
-    });
+  // XXX: This should be a util function.
+//  updateUser = (completed = false, optOut = false, count = 0) => util.promisify(
+  updateUser = async opts => {
+    let user = {};
+    try {
+      user = await util.promisify(controller.storage.users.get)(this.user);
+    } catch(err) {
+      // ignored
+    } finally {
+      await util.promisify(controller.storage.users.save)(_.merge(user, {
+        id: this.user,
+        team: this.team,
+        [CommunitySurvey.name]: _.merge({
+          update: new Date(),
+          completed: false,
+          optOut: false,
+          count: 0,
+        }, opts),
+      }));
+    }
+  }
 
-  prompt = (bot, count = 0) => {
+  prompt = bot => {
     log.info({
       fn: 'promptUser',
       user: this.user,
@@ -76,16 +82,13 @@ Would you mind answering a few quick questions?`;
           },
         }),
       },
-    ];
-
-    if (count > 0) {
-      actions.push({
+      {
         name: 'cancel',
         type: 'button',
         value: 'cancel',
         text: 'Cancel',
-      });
-    }
+      }
+    ];
 
     bot.say({
       channel: this.user,
@@ -125,15 +128,15 @@ Would you mind answering a few quick questions?`;
 
     log.info(logTags, 'send nag');
 
-    this.updateUser(completed, optOut, count+1);
+    await this.updateUser({count: count+1});
 
     const team = await util.promisify(controller.storage.teams.get)(this.team);
     const bot = controller.spawn(team.bot);
 
-    this.prompt(bot, count);
+    this.prompt(bot);
   }
 
-  handlePrompt = (bot, message) => {
+  handlePrompt = async (bot, message) => {
     if (message.callback_id !== this.id) return;
 
     log.info({
@@ -142,17 +145,17 @@ Would you mind answering a few quick questions?`;
       callback: this.id,
     });
 
-    this.updateUser(false, true);
+    await this.updateUser({optOut: true});
   };
 
-  handleRedirect = () => {
+  handleRedirect = async () => {
     log.info({
       fn: 'handleRedirect',
       user: this.user,
       callback: this.id,
     });
 
-    this.updateUser(true);
+    await this.updateUser({complete: true});
   }
 }
 
