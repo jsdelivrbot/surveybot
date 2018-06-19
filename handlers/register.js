@@ -56,12 +56,36 @@ Would you mind answering a few quick questions?`;
       },
     });
 
-  prompt = bot => {
+  prompt = (bot, count = 0) => {
     log.info({
       fn: 'promptUser',
       user: this.user,
       callback: this.id,
     });
+
+    const actions = [
+      {
+        name: 'openSurvey',
+        type: 'button',
+        value: 'openSurvey',
+        text: 'Open Survey',
+        url: buildUrl(`http://${process.env.PROJECT_DOMAIN}.glitch.me`, {
+          path: `/callback/${this.id}`,
+          queryParams: {
+            url: this.surveyURL,
+          },
+        }),
+      },
+    ];
+
+    if (count > 0) {
+      actions.push({
+        name: 'cancel',
+        type: 'button',
+        value: 'cancel',
+        text: 'Cancel',
+      });
+    }
 
     bot.say({
       channel: this.user,
@@ -73,26 +97,7 @@ Would you mind answering a few quick questions?`;
           attachment_type: 'default',
           callback_id: this.id,
           text: this.surveyText,
-          actions: [
-            {
-              name: 'openSurvey',
-              type: 'button',
-              value: 'openSurvey',
-              text: 'Open Survey',
-              url: buildUrl(`http://${process.env.PROJECT_DOMAIN}.glitch.me`, {
-                path: `/callback/${this.id}`,
-                queryParams: {
-                  url: this.surveyURL,
-                },
-              }),
-            },
-            {
-              name: 'cancel',
-              type: 'button',
-              value: 'cancel',
-              text: 'Cancel',
-            },
-          ],
+          actions: actions,
         },
       ],
     });
@@ -113,7 +118,7 @@ Would you mind answering a few quick questions?`;
       return;
     }
 
-    if (DateTime.fromISO(update).plus(this.interval) < DateTime.utc()) {
+    if (DateTime.fromISO(update).plus(this.interval) >= DateTime.utc()) {
       log.info(logTags, 'too soon');
       return;
     }
@@ -123,8 +128,9 @@ Would you mind answering a few quick questions?`;
     this.updateUser(completed, optOut, count+1);
 
     const team = await util.promisify(controller.storage.teams.get)(this.team);
+    const bot = controller.spawn(team.bot);
 
-    console.log(team);
+    this.prompt(bot, count);
   }
 
   handlePrompt = (bot, message) => {
