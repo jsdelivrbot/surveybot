@@ -40,7 +40,6 @@ Would you mind answering a few quick questions?`;
   surveyURL = 'https://docs.google.com/forms/d/e/1FAIpQLSfm0Pm8WHH3Gxb3ctOuXI3JIYNKsT-WKp6VerG8YG0irprxvg/viewform';
 
   // XXX: This should be a util function.
-//  updateUser = (completed = false, optOut = false, count = 0) => util.promisify(
   updateUser = async (opts, remove = false) => {
     let user = {};
     try {
@@ -69,6 +68,10 @@ Would you mind answering a few quick questions?`;
       }));
     }
   }
+
+  // XXX: This should be a util function.
+  getBot = async () => controller.spawn(
+    (await util.promisify(controller.storage.teams.get)(this.team)).bot);
 
   prompt = async bot => {
     log.info({
@@ -142,10 +145,7 @@ Would you mind answering a few quick questions?`;
 
     await this.updateUser({count: count+1});
 
-    const team = await util.promisify(controller.storage.teams.get)(this.team);
-    const bot = controller.spawn(team.bot);
-
-    this.prompt(bot);
+    this.prompt(await this.getBot());
   }
 
   handlePrompt = async (bot, message) => {
@@ -165,27 +165,17 @@ Would you mind answering a few quick questions?`;
   };
 
   handleRedirect = async original => {
-    console.log(original);
-
     log.info({
       fn: 'handleRedirect',
       user: this.user,
       callback: this.id,
     });
 
-
-    // // this.message_ts = message_ts;
-    // console.log(msg);
-
-    // bot.api.chat.update({
-    //   text: 'foobar',
-    //   ts: msg.ts,
-    //   channel: msg.channel,
-    //   attachments: [],
-    // }, (err, json) => {
-    //   console.log(err);
-    //   console.log(json);
-    // })
+    (await this.getBot()).api.chat.update({
+      text: 'Thank you for completing the survey!',
+      ts: original.ts,
+      attachments: [],
+    });
 
     await this.updateUser({complete: true});
   }
