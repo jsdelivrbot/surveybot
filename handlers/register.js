@@ -171,13 +171,15 @@ Would you mind answering a few quick questions?`;
       callback: this.id,
     });
 
-    (await this.getBot()).api.chat.update({
+    const bot = await this.getBot();
+    await util.promisify(bot.api.chat.update)({
       text: 'Thank you for completing the survey!',
       ts: original.ts,
+      channel: original.channel,
       attachments: [],
     });
 
-    await this.updateUser({complete: true});
+    await this.updateUser({completed: true});
   }
 }
 
