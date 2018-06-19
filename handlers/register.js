@@ -1,21 +1,40 @@
 import _ from 'lodash';
 import buildUrl from 'build-url';
-import fs from 'fs';
-import yaml from 'js-yaml';
-import glob from 'glob';
-import util from 'util';
-import Promise from 'bluebird';
 import uuidv4 from 'uuid/v4';
 
 import controller from '../components/controller';
 import events from '../components/events';
 import log from '../components/log';
 
+export const messages = [
+  CommunitySurvey,
+];
 
-class SurveyHandler {
+class UserMessage {
+  static name = 'UserMessage';
+
+  // static register = () => {};
+
   constructor(user) {
     this.user = user;
     this.id = uuidv4();
+  }
+
+  // prompt = (bot, message) => {};
+
+  // nag = () => false;
+}
+
+class CommunitySurvey extends UserMessage {
+  static name = 'CommunitySurvey';
+
+  static register = () => controller.hears(
+    ['survey'],
+    'direct_message',
+    (bot, message) => new CommunitySurvey(message.user).prompt(bot, message));
+
+  constructor(user) {
+    super(user);
 
     controller.on('interactive_message_callback', this.handlePrompt);
     events.once(`callback:${this.id}`, this.handleRedirect);
@@ -23,19 +42,19 @@ class SurveyHandler {
     controller.storage.users.save({id: this.user, ...this.getID()});
   }
 
-  surveyText = `We\'re trying to understand our Linkerd community better.
+  surveyText = `We're trying to understand our Linkerd community better.
 Would you mind answering a few quick questions?`;
   surveyURL = 'https://docs.google.com/forms/d/e/1FAIpQLSfm0Pm8WHH3Gxb3ctOuXI3JIYNKsT-WKp6VerG8YG0irprxvg/viewform';
 
   getID = (completed = false, optOut = false) => ({
-    [this.surveyURL]: {
+    [this.name]: {
       update: new Date(),
       completed: completed,
       optOut: optOut,
     },
   });
 
-  promptUser = (bot, message) => {
+  prompt = (bot, message) => {
     log.info({
       fn: 'promptUser',
       user: this.user,
@@ -98,9 +117,4 @@ Would you mind answering a few quick questions?`;
   }
 }
 
-export default async () => {
-  controller.hears(
-    ['survey'],
-    'direct_message',
-    (bot, message) => new SurveyHandler(message.user).promptUser(bot, message));
-}
+export default async () => _.each(messages, msg => msg.register());
