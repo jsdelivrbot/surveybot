@@ -36,7 +36,8 @@ Would you mind answering a few quick questions?`;
   });
 
   promptUser = (bot, message) => {
-    log.info('promptUser', {
+    log.info({
+      fn: 'promptUser',
       user: this.user,
       callback: this.id,
     });
@@ -50,7 +51,7 @@ Would you mind answering a few quick questions?`;
           color: 'good',
           attachment_type: 'default',
           callback_id: this.id,
-          text: surveyText,
+          text: this.surveyText,
           actions: [
             {
               name: 'openSurvey',
@@ -60,7 +61,7 @@ Would you mind answering a few quick questions?`;
               url: buildUrl(`http://${process.env.PROJECT_DOMAIN}.glitch.me`, {
                 path: `/callback/${this.id}`,
                 queryParams: {
-                  url: surveyURL,
+                  url: this.surveyURL,
                 },
               }),
             },
@@ -79,13 +80,16 @@ Would you mind answering a few quick questions?`;
   handlePrompt = (bot, message) => {
     if (message.callback_id !== this.id) return;
 
-    log.info('handlePrompt', {
+    log.info({
+      fn: 'handlePrompt',
       user: this.user,
+      callback: this.id,
     });
   };
 
   handleRedirect = () => {
-    log.info('handleRedirect', {
+    log.info({
+      fn: 'handleRedirect',
       user: this.user,
       callback: this.id,
     });
