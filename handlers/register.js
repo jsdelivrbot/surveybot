@@ -13,9 +13,6 @@ class UserMessage {
     this.team = team;
     this.user = user;
     this.id = uuidv4();
-
-    // This is used to replace the original prompt on click of the URL.
-    this.message_ts = null;
   }
 }
 
@@ -34,7 +31,6 @@ class CommunitySurvey extends UserMessage {
     super(team, user);
 
     controller.on('interactive_message_callback', this.handlePrompt);
-    events.once(`callback:${this.id}`, this.handleRedirect);
   }
 
   maxPings = 3;
@@ -102,7 +98,7 @@ Would you mind answering a few quick questions?`;
       }
     ];
 
-    const {message_ts} = await util.promisify(bot.say)({
+    const original = await util.promisify(bot.say)({
       channel: this.user,
       attachments: [
         {
@@ -117,13 +113,7 @@ Would you mind answering a few quick questions?`;
       ],
     });
 
-    this.message_ts = message_ts;
-
-    bot.api.chat.update({
-      text: 'foobar',
-      ts: message_ts,
-      channel: this.user,
-    })
+    events.once(`callback:${this.id}`, _.partial(this.handleRedirect, original));
   }
 
   nag = async (state) => {
@@ -174,12 +164,28 @@ Would you mind answering a few quick questions?`;
     await this.updateUser({optOut: true});
   };
 
-  handleRedirect = async () => {
+  handleRedirect = async original => {
+    console.log(original);
+
     log.info({
       fn: 'handleRedirect',
       user: this.user,
       callback: this.id,
     });
+
+
+    // // this.message_ts = message_ts;
+    // console.log(msg);
+
+    // bot.api.chat.update({
+    //   text: 'foobar',
+    //   ts: msg.ts,
+    //   channel: msg.channel,
+    //   attachments: [],
+    // }, (err, json) => {
+    //   console.log(err);
+    //   console.log(json);
+    // })
 
     await this.updateUser({complete: true});
   }
