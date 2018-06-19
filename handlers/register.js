@@ -42,22 +42,28 @@ Would you mind answering a few quick questions?`;
 
   // XXX: This should be a util function.
 //  updateUser = (completed = false, optOut = false, count = 0) => util.promisify(
-  updateUser = async opts => {
+  updateUser = async (opts, remove = false) => {
     let user = {};
     try {
       user = await util.promisify(controller.storage.users.get)(this.user);
     } catch(err) {
       // ignored
     } finally {
-      await util.promisify(controller.storage.users.save)(_.merge(user, {
-        id: this.user,
-        team: this.team,
+      let data = {
         [CommunitySurvey.name]: _.merge({
           update: new Date(),
           completed: false,
           optOut: false,
           count: 0,
         }, opts),
+      };
+
+      if (remove) data = {};
+
+      await util.promisify(controller.storage.users.save)(_.merge(user, {
+        id: this.user,
+        team: this.team,
+        ...data,
       }));
     }
   }
@@ -118,10 +124,15 @@ Would you mind answering a few quick questions?`;
 
     if (completed || optOut || count >= this.maxPings) {
       log.info(logTags, 'do not nag');
+      await this.updateUser({}, true);
+
       return;
     }
 
-    if (DateTime.fromISO(update).plus(this.interval) >= DateTime.utc()) {
+    console.log(DateTime.fromISO(update).plus(this.interval));
+    console.log(DateTime.utc());
+
+    if (DateTime.fromISO(update).plus(this.interval) < DateTime.utc()) {
       log.info(logTags, 'too soon');
       return;
     }
