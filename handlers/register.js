@@ -98,15 +98,27 @@ Would you mind answering a few quick questions?`;
     });
   }
 
-  nag = async ({completed, update, optOut, count}) => {
-    log.info({
+  nag = async (state) => {
+    const {completed, optOut, count, update} = state;
+
+    const logTags = {
       fn: 'nag',
-      user: this.user
-    });
+      user: this.user,
+      ...state,
+    };
+    log.info(logTags, 'checking');
 
-    if (completed || optOut || count >= this.maxPings) return;
+    if (completed || optOut || count >= this.maxPings) {
+      log.info(logTags, 'do not nag');
+      return;
+    }
 
-    if (DateTime.fromISO(update).plus(this.interval) < DateTime.utc()) return;
+    if (DateTime.fromISO(update).plus(this.interval) < DateTime.utc()) {
+      log.info(logTags, 'too soon');
+      return;
+    }
+
+    log.info(logTags, 'send nag');
 
     this.updateUser(completed, optOut, count+1);
 
