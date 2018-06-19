@@ -13,6 +13,9 @@ class UserMessage {
     this.team = team;
     this.user = user;
     this.id = uuidv4();
+
+    // This is used to replace the original prompt on click of the URL.
+    this.message_ts = null;
   }
 }
 
@@ -99,7 +102,7 @@ Would you mind answering a few quick questions?`;
       }
     ];
 
-    const msg = await util.promisify(bot.say)({
+    const {message_ts} = await util.promisify(bot.say)({
       channel: this.user,
       attachments: [
         {
@@ -114,7 +117,13 @@ Would you mind answering a few quick questions?`;
       ],
     });
 
-    console.log(msg);
+    this.message_ts = message_ts;
+
+    bot.api.chat.update({
+      text: 'foobar',
+      ts: message_ts,
+      channel: this.user,
+    })
   }
 
   nag = async (state) => {
