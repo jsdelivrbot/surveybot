@@ -54,7 +54,7 @@ Would you mind answering a few quick questions?`;
           update: DateTime.utc(),
           completed: false,
           optOut: false,
-          count: 0,
+          count: 1,
         }, opts),
       };
 
@@ -71,7 +71,7 @@ Would you mind answering a few quick questions?`;
     }
   }
 
-  prompt = bot => {
+  prompt = async bot => {
     log.info({
       fn: 'promptUser',
       user: this.user,
@@ -99,7 +99,7 @@ Would you mind answering a few quick questions?`;
       }
     ];
 
-    bot.say({
+    const msg = await util.promisify(bot.say)({
       channel: this.user,
       attachments: [
         {
@@ -113,6 +113,8 @@ Would you mind answering a few quick questions?`;
         },
       ],
     });
+
+    console.log(msg);
   }
 
   nag = async (state) => {
@@ -154,6 +156,10 @@ Would you mind answering a few quick questions?`;
       fn: 'handlePrompt',
       user: this.user,
       callback: this.id,
+    });
+
+    bot.replyInteractive(message, {
+      text: `We won't bother you about this again.`,
     });
 
     await this.updateUser({optOut: true});
