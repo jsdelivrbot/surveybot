@@ -29,8 +29,8 @@ class CommunitySurvey extends UserMessage {
     (bot, message) => new CommunitySurvey(
       message.team_id, message.user).prompt(bot));
 
-  constructor(user) {
-    super(user);
+  constructor(team, user) {
+    super(team, user);
 
     controller.on('interactive_message_callback', this.handlePrompt);
     events.once(`callback:${this.id}`, this.handleRedirect);
