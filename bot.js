@@ -5,6 +5,8 @@ import keepalive from './components/plugin_glitch';
 import registration from './components/user_registration';
 
 import registerHandlers from './handlers/register';
+import nag from './handlers/nag';
+
 
 controller.startTicking();
 
@@ -25,3 +27,4 @@ webserver.get('/callback/:id', (req, res) => {
 keepalive();
 registration();
 registerHandlers();
+nag();
