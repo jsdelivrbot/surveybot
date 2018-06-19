@@ -23,9 +23,9 @@ class SurveyHandler {
     controller.storage.users.save({id: this.user, ...this.getID()});
   }
 
-  static surveyText = `We\'re trying to understand our Linkerd community better.
+  surveyText = `We\'re trying to understand our Linkerd community better.
 Would you mind answering a few quick questions?`;
-  static surveyURL = 'https://docs.google.com/forms/d/e/1FAIpQLSfm0Pm8WHH3Gxb3ctOuXI3JIYNKsT-WKp6VerG8YG0irprxvg/viewform';
+  surveyURL = 'https://docs.google.com/forms/d/e/1FAIpQLSfm0Pm8WHH3Gxb3ctOuXI3JIYNKsT-WKp6VerG8YG0irprxvg/viewform';
 
   getID = (completed = false, optOut = false) => ({
     [this.surveyURL]: {
