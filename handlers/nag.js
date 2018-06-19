@@ -11,7 +11,7 @@ const nagUser = user => _.each(user, (v, k) => {
   const msg = _.find(messages, msg => msg.name === k);
   if (!msg) return;
 
-  msg(user.id).nag(v);
+  new msg(user.team, user.id).nag(v);
 });
 
 const getUsers = () => {

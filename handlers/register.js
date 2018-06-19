@@ -11,7 +11,8 @@ import log from '../components/log';
 class UserMessage {
   // static register = () => {};
 
-  constructor(user) {
+  constructor(team, user) {
+    this.team = team;
     this.user = user;
     this.id = uuidv4();
   }
@@ -25,7 +26,8 @@ class CommunitySurvey extends UserMessage {
   static register = () => controller.hears(
     ['survey'],
     'direct_message',
-    (bot, message) => new CommunitySurvey(message.user).prompt(bot));
+    (bot, message) => new CommunitySurvey(
+      message.team_id, message.user).prompt(bot));
 
   constructor(user) {
     super(user);
@@ -45,6 +47,7 @@ Would you mind answering a few quick questions?`;
   updateUser = (completed = false, optOut = false, count = 0) => util.promisify(
     controller.storage.users.save)({
       id: this.user,
+      team: this.team,
       [CommunitySurvey.name]: {
         update: new Date(),
         completed: completed,
@@ -54,7 +57,6 @@ Would you mind answering a few quick questions?`;
     });
 
   prompt = bot => {
-    console.log(bot);
     log.info({
       fn: 'promptUser',
       user: this.user,
@@ -96,7 +98,7 @@ Would you mind answering a few quick questions?`;
     });
   }
 
-  nag = ({completed, update, optOut, count}) => {
+  nag = async ({completed, update, optOut, count}) => {
     log.info({
       fn: 'nag',
       user: this.user
@@ -108,7 +110,9 @@ Would you mind answering a few quick questions?`;
 
     this.updateUser(completed, optOut, count+1);
 
-    this.prompt()
+    const team = await util.promisify(controller.storage.teams.get)(this.team);
+
+    console.log(team);
   }
 
   handlePrompt = (bot, message) => {
