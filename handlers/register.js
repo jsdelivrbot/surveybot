@@ -51,14 +51,17 @@ Would you mind answering a few quick questions?`;
     } finally {
       let data = {
         [CommunitySurvey.name]: _.merge({
-          update: new Date(),
+          update: DateTime.utc(),
           completed: false,
           optOut: false,
           count: 0,
         }, opts),
       };
 
-      if (remove) data = {};
+      if (remove) {
+        delete user[CommunitySurvey.name];
+        data = {};
+      }
 
       await util.promisify(controller.storage.users.save)(_.merge(user, {
         id: this.user,
@@ -129,10 +132,7 @@ Would you mind answering a few quick questions?`;
       return;
     }
 
-    console.log(DateTime.fromISO(update).plus(this.interval));
-    console.log(DateTime.utc());
-
-    if (DateTime.fromISO(update).plus(this.interval) < DateTime.utc()) {
+    if (DateTime.fromISO(update).plus(this.interval) > DateTime.utc()) {
       log.info(logTags, 'too soon');
       return;
     }
