@@ -21,18 +21,18 @@ class UserMessage {
 
 class CommunitySurvey extends UserMessage {
   static register = () => {
-    controller.hears(['survey'], 'direct_message', this.sendMessage);
+    const sendMessage = async (bot, message) => {
+      const msg = new CommunitySurvey(message.team_id, message.user);
+
+      await msg.updateUser();
+      msg.prompt(bot);
+    }
+
+    controller.hears(['survey'], 'direct_message', sendMessage);
     controller.on('member_joined_channel', (bot, message) => {
       console.log(bot, message);
-      this.sendMessage(bot, message);
+      sendMessage(bot, message);
     });
-  }
-
-  sendMessage = async (bot, message) => {
-    const msg = new CommunitySurvey(message.team_id, message.user);
-
-    await msg.updateUser();
-    msg.prompt(bot);
   }
 
   constructor(team, user) {
