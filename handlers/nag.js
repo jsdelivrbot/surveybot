@@ -21,7 +21,7 @@ const getUsers = async () => {
 
 export default async () => {
   // XXX - Change to a more reasonable time.
-  schedule.scheduleJob('* * * * * *', () => {
+  schedule.scheduleJob('0 * * * *', () => {
     getUsers();
   });
 }
