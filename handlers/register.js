@@ -16,16 +16,24 @@ class UserMessage {
   }
 }
 
-class CommunitySurvey extends UserMessage {
-  static register = () => controller.hears(
-    ['survey'],
-    'direct_message',
-    async (bot, message) => {
-      const msg = new CommunitySurvey(message.team_id, message.user);
+// member_joined_channel
+// team_join
 
-      await msg.updateUser();
-      msg.prompt(bot);
+class CommunitySurvey extends UserMessage {
+  static register = () => {
+    controller.hears(['survey'], 'direct_message', this.sendMessage);
+    controller.on('member_joined_channel', (bot, message) => {
+      console.log(bot, message);
+      this.sendMessage(bot, message);
     });
+  }
+
+  sendMessage = async (bot, message) => {
+    const msg = new CommunitySurvey(message.team_id, message.user);
+
+    await msg.updateUser();
+    msg.prompt(bot);
+  }
 
   constructor(team, user) {
     super(team, user);
@@ -34,10 +42,13 @@ class CommunitySurvey extends UserMessage {
   }
 
   maxPings = 3;
-  interval = {seconds: 5};
-  surveyText = `We're trying to understand our Linkerd community better.
-Would you mind answering a few quick questions?`;
+  interval = {days: 3};
+  surveyText = `Please help us build the Linkerd features that matter most by answering our community survey!`;
   surveyURL = 'https://docs.google.com/forms/d/e/1FAIpQLSfm0Pm8WHH3Gxb3ctOuXI3JIYNKsT-WKp6VerG8YG0irprxvg/viewform';
+
+  successMessage = `Thank you for completing the survey!
+Please also subscribe to the [linkerd-users mailing list](https://groups.google.com/forum/#!forum/linkerd-users) for longer-form questions!
+You can also try the [Linkerd discourse forums](https://discourse.linkerd.io/c/help) for more.`;
 
   // XXX: This should be a util function.
   updateUser = async (opts, remove = false) => {
@@ -85,7 +96,7 @@ Would you mind answering a few quick questions?`;
         name: 'openSurvey',
         type: 'button',
         value: 'openSurvey',
-        text: 'Open Survey',
+        text: 'Community Survey',
         url: buildUrl(`http://${process.env.PROJECT_DOMAIN}.glitch.me`, {
           path: `/callback/${this.id}`,
           queryParams: {
@@ -97,7 +108,7 @@ Would you mind answering a few quick questions?`;
         name: 'cancel',
         type: 'button',
         value: 'cancel',
-        text: 'Cancel',
+        text: 'Don\'t ask me again',
       }
     ];
 
@@ -105,8 +116,8 @@ Would you mind answering a few quick questions?`;
       channel: this.user,
       attachments: [
         {
-          title: 'Hi from your friends at Buoyant!',
-          fallback: 'Hi from your friends at Buoyant!',
+          title: 'Hi from your friendly local Linkerd maintainers!',
+          fallback: 'Hi from your friendly local Linkerd maintainers!',
           color: 'good',
           attachment_type: 'default',
           callback_id: this.id,
@@ -173,7 +184,7 @@ Would you mind answering a few quick questions?`;
 
     const bot = await this.getBot();
     await util.promisify(bot.api.chat.update)({
-      text: 'Thank you for completing the survey!',
+      text: this.successMessage,
       ts: original.ts,
       channel: original.channel,
       attachments: [],
