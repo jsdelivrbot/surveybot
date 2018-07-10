@@ -13,7 +13,7 @@
     "babel-preset-react-app": "^3.1.1",
     "bluebird": "^3.5.1",
     "body-parser": "^1.15.2",
-    "botkit": "^0.6.12",
+    "botkit": "^0.6.15",
     "botkit-storage-mongo": "^1.0.6",
     "botkit-studio-metrics": "0.0.2",
     "build-url": "^1.1.1",
