@@ -28,9 +28,12 @@ class CommunitySurvey extends UserMessage {
       msg.prompt(bot);
     }
 
-    // controller.hears(['survey'], 'direct_message', sendMessage);
+    controller.hears(['survey'], 'direct_message', sendMessage);
     controller.on('member_joined_channel', (bot, message) => {
-      console.log(message);
+      // #linkerd (the default channel, so this triggers on team_join basically)
+      if (message.channel != 'C0JV5E7BR') return;
+
+      log.info(message.event, 'sending survey');
       sendMessage(bot, message);
     });
   }
