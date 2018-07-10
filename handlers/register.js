@@ -29,8 +29,8 @@ class CommunitySurvey extends UserMessage {
     }
 
     // controller.hears(['survey'], 'direct_message', sendMessage);
-    controller.on('team_join', (bot, message) => {
-      console.log('team_join');
+    controller.on('member_joined_channel', (bot, message) => {
+      console.log(message);
       sendMessage(bot, message);
     });
   }
