@@ -28,7 +28,7 @@ class CommunitySurvey extends UserMessage {
       msg.prompt(bot);
     }
 
-    controller.hears(['survey'], 'direct_message', sendMessage);
+    // controller.hears(['survey'], 'direct_message', sendMessage);
     controller.on('member_joined_channel', () => {
       console.log('did something');
       // sendMessage(bot, message);

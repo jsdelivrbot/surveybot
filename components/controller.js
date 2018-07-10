@@ -13,4 +13,6 @@ const bot_options = {
 
 const controller = Botkit.slackbot(bot_options);
 
+controller.on('member_joined_channel', () => console.log('fail boat'));
+
 export default controller;
